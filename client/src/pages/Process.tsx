@@ -95,7 +95,7 @@ export default function Process() {
         }
       }
     } catch (err) {
-      setError('Failed to generate alt-text. Is Ollama running?');
+      setError('Failed to generate alt-text. AI vision service unavailable.');
     } finally {
       setGeneratingId(null);
     }
@@ -114,7 +114,7 @@ export default function Process() {
         setDocument(prev => prev ? { ...prev, images: response.images, status: 'uploaded' } : null);
       }
     } catch (err) {
-      setError('Failed to generate alt-texts. Is Ollama running?');
+      setError('Failed to generate alt-texts. AI vision service unavailable.');
       setDocument(prev => prev ? { ...prev, status: 'error' } : null);
     } finally {
       setIsGeneratingAll(false);

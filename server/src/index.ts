@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -28,6 +29,15 @@ app.use('/api', processRoutes);
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Serve static frontend files in production
+const clientDistPath = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientDistPath));
+
+// Handle client-side routing - serve index.html for all non-API routes
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(clientDistPath, 'index.html'));
 });
 
 // Error handling middleware

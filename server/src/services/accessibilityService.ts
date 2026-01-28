@@ -1,5 +1,5 @@
 import { pdfService } from './pdfService.js';
-import { ollamaService } from './ollamaService.js';
+import { getVisionService, getVisionProvider, type VisionProviderType } from './visionProvider.js';
 import { documentStore } from './documentStore.js';
 import type { AccessibilityReport, AccessibilityIssue, PDFImage, PDFMetadata } from '../../../shared/types/index.js';
 
@@ -42,7 +42,8 @@ class AccessibilityService {
           // Extract base64 from data URL
           const base64Match = image.dataUrl.match(/base64,(.+)$/);
           if (base64Match) {
-            const altText = await ollamaService.generateAltText(base64Match[1]);
+            const visionService = getVisionService();
+            const altText = await visionService.generateAltText(base64Match[1]);
             updatedImages.push({
               ...image,
               altText,
@@ -169,14 +170,17 @@ class AccessibilityService {
     };
   }
 
-  async checkOllamaStatus(): Promise<{
+  async checkVisionStatus(): Promise<{
     connected: boolean;
     modelAvailable: boolean;
+    provider: VisionProviderType;
   }> {
-    const connected = await ollamaService.checkConnection();
-    const modelAvailable = connected ? await ollamaService.isModelAvailable() : false;
+    const visionService = getVisionService();
+    const provider = getVisionProvider();
+    const connected = await visionService.checkConnection();
+    const modelAvailable = connected ? await visionService.isModelAvailable() : false;
 
-    return { connected, modelAvailable };
+    return { connected, modelAvailable, provider };
   }
 }
 

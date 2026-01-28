@@ -4,16 +4,17 @@ import pdfApi from '../services/api';
 
 export default function Home() {
   const [error, setError] = useState<string | null>(null);
-  const [ollamaStatus, setOllamaStatus] = useState<{
+  const [visionStatus, setVisionStatus] = useState<{
     connected: boolean;
     modelAvailable: boolean;
+    provider: string;
   } | null>(null);
 
   useEffect(() => {
-    // Check Ollama status on mount
-    pdfApi.checkOllamaStatus()
-      .then(setOllamaStatus)
-      .catch(() => setOllamaStatus({ connected: false, modelAvailable: false }));
+    // Check vision AI status on mount
+    pdfApi.checkVisionStatus()
+      .then(setVisionStatus)
+      .catch(() => setVisionStatus({ connected: false, modelAvailable: false, provider: 'unknown' }));
   }, []);
 
   return (
@@ -28,51 +29,51 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Ollama Status Banner */}
-      {ollamaStatus && !ollamaStatus.connected && (
+      {/* Vision AI Status Banner */}
+      {visionStatus && !visionStatus.connected && (
         <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <div className="flex items-start">
             <svg className="h-5 w-5 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-amber-800">Ollama not detected</h3>
+              <h3 className="text-sm font-medium text-amber-800">AI vision service not available</h3>
               <p className="mt-1 text-sm text-amber-700">
-                AI alt-text generation requires Ollama with the llava model. Run:
+                {visionStatus.provider === 'gemini'
+                  ? 'Check your GEMINI_API_KEY in the server .env file.'
+                  : 'AI alt-text generation requires Ollama with the llava model, or a Gemini API key.'}
               </p>
-              <pre className="mt-2 text-xs bg-amber-100 p-2 rounded">
-                brew install ollama && ollama serve && ollama pull llava
-              </pre>
             </div>
           </div>
         </div>
       )}
 
-      {ollamaStatus?.connected && !ollamaStatus.modelAvailable && (
+      {visionStatus?.connected && !visionStatus.modelAvailable && (
         <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <div className="flex items-start">
             <svg className="h-5 w-5 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-amber-800">llava model not found</h3>
+              <h3 className="text-sm font-medium text-amber-800">Vision model not available</h3>
               <p className="mt-1 text-sm text-amber-700">
-                The llava vision model is required for AI alt-text generation. Run:
+                {visionStatus.provider === 'ollama'
+                  ? 'The llava vision model is required. Run: ollama pull llava'
+                  : 'Vision model configuration issue.'}
               </p>
-              <pre className="mt-2 text-xs bg-amber-100 p-2 rounded">ollama pull llava</pre>
             </div>
           </div>
         </div>
       )}
 
-      {ollamaStatus?.connected && ollamaStatus.modelAvailable && (
+      {visionStatus?.connected && visionStatus.modelAvailable && (
         <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center">
             <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="ml-2 text-sm font-medium text-green-800">
-              AI ready - Ollama with llava model connected
+              AI ready - {visionStatus.provider === 'gemini' ? 'Google Gemini' : 'Ollama with llava'} connected
             </span>
           </div>
         </div>
@@ -118,7 +119,7 @@ export default function Home() {
           </div>
           <h3 className="mt-4 text-lg font-semibold text-gray-900">AI Alt-Text</h3>
           <p className="mt-2 text-gray-600">
-            Generate descriptive alt-text using local AI (Ollama + llava) - no cloud required.
+            Generate descriptive alt-text using AI vision models (Gemini or Ollama).
           </p>
         </div>
 

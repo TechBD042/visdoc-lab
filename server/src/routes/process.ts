@@ -4,7 +4,7 @@ import path from 'path';
 import archiver from 'archiver';
 import { documentStore } from '../services/documentStore.js';
 import { pdfService } from '../services/pdfService.js';
-import { ollamaService } from '../services/ollamaService.js';
+import { getVisionService } from '../services/visionProvider.js';
 import { accessibilityService } from '../services/accessibilityService.js';
 import { OUTPUT_DIR, fileExists } from '../utils/fileUtils.js';
 import type { ExtractImagesResponse, GenerateAltTextResponse, RemediateResponse, PDFImage } from '../../../shared/types/index.js';
@@ -67,7 +67,8 @@ router.post('/alt-text', async (req: Request, res: Response) => {
       base64 = imageData.split('base64,')[1];
     }
 
-    const altText = await ollamaService.generateAltText(base64, context);
+    const visionService = getVisionService();
+    const altText = await visionService.generateAltText(base64, context);
 
     const response: GenerateAltTextResponse = {
       success: true,
@@ -262,13 +263,23 @@ router.get('/batch/download', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/ollama/status - Check Ollama connection status
-router.get('/ollama/status', async (_req: Request, res: Response) => {
+// GET /api/vision/status - Check vision AI service connection status
+router.get('/vision/status', async (_req: Request, res: Response) => {
   try {
-    const status = await accessibilityService.checkOllamaStatus();
+    const status = await accessibilityService.checkVisionStatus();
     res.json({ success: true, ...status });
   } catch (error) {
-    res.json({ success: false, connected: false, modelAvailable: false });
+    res.json({ success: false, connected: false, modelAvailable: false, provider: 'unknown' });
+  }
+});
+
+// Keep legacy endpoint for backwards compatibility
+router.get('/ollama/status', async (_req: Request, res: Response) => {
+  try {
+    const status = await accessibilityService.checkVisionStatus();
+    res.json({ success: true, ...status });
+  } catch (error) {
+    res.json({ success: false, connected: false, modelAvailable: false, provider: 'unknown' });
   }
 });
 

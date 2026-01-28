@@ -104,10 +104,15 @@ export const pdfApi = {
     return `/api/batch/download?ids=${ids.join(',')}`;
   },
 
-  // Check Ollama status
-  async checkOllamaStatus(): Promise<{ success: boolean; connected: boolean; modelAvailable: boolean }> {
-    const { data } = await api.get('/ollama/status');
+  // Check vision AI status
+  async checkVisionStatus(): Promise<{ success: boolean; connected: boolean; modelAvailable: boolean; provider: string }> {
+    const { data } = await api.get('/vision/status');
     return data;
+  },
+
+  // Legacy alias
+  async checkOllamaStatus(): Promise<{ success: boolean; connected: boolean; modelAvailable: boolean; provider: string }> {
+    return this.checkVisionStatus();
   },
 };
 
